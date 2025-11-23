@@ -1,38 +1,46 @@
 #include <iostream>
 #include <string>
-#include "mem.h"
-#include "stack.h"
+#include "wrapper_mem.h"
+#include "list_stack.h"
 
-struct Data {
+void print_sep(const std::string& title) {
+    std::cout << "\n=== " << title << " ===\n";
+}
+
+struct TestStruct {
     int id;
-    std::string s;
+    std::string name;
 };
 
 int main() {
-    MemRes mr;
+    LabMemoryResource mem;
     
-    std::cout << "=== TEST 1: INT ===\n";
-    Stack<int> s1(&mr);
+    print_sep("Int Test Start");
     
-    std::cout << "Pushing 10, 20:\n";
-    s1.push(10);
-    s1.push(20);
+    MyStackContainer<int> st1(&mem);
     
-    std::cout << "Items: ";
-    for(auto x : s1) std::cout << x << " ";
-    std::cout << "\n\n";
+    st1.push(100);
+    st1.push(200);
+    
+    std::cout << "Current stack: ";
+    for (auto it = st1.begin(); it != st1.end(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << "\n";
 
-    std::cout << "Pop (saving memory):\n";
-    s1.pop(); 
-    s1.pop(); 
+    st1.pop();
+    st1.pop();
 
-    std::cout << "Push 30 (checking reuse):\n";
-    s1.push(30); 
+    std::cout << "Adding new item (Check Reuse):\n";
+    st1.push(300);
 
-    std::cout << "\n=== TEST 2: STRUCT ===\n";
-    Stack<Data> s2(&mr);
-    s2.push({1, "Student"});
-    std::cout << "Val: " << s2.begin().curr->val.s << "\n";
+    print_sep("Struct Test Start");
+    
+    MyStackContainer<TestStruct> st2(&mem);
+    st2.push({1, "Alpha"});
+    
+    auto it = st2.begin();
+    std::cout << "Top: " << it.ptr->data.name << "\n";
     
     return 0;
 }
