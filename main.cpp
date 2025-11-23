@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
-#include "mem.h"     // <--- Тут теперь mem.h
-#include "stack.h"   // <--- Тут теперь stack.h
+#include "mem.h"
+#include "stack.h"git add main.cpp
 
 struct Data {
     int id;
