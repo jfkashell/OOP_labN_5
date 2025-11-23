@@ -68,4 +68,12 @@ public:
     };
 
     StackIter begin() { 
-        return StackIter
+        return StackIter(m_head); 
+    }
+    
+    StackIter end() { 
+        return StackIter(nullptr); 
+    }
+};
+
+#endif
