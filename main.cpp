@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include "mem.h"
-#include "stack.h"git add main.cpp
+#include "stack.h"
 
 struct Data {
     int id;
