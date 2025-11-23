@@ -6,6 +6,15 @@
 
 template <typename T>
 class MyStack {
+private:
+    struct _link {
+        T val;
+        _link* next;
+    };
+
+    std::pmr::polymorphic_allocator<_link> _al;
+    _link* _top;
+
 public:
     MyStack(std::pmr::memory_resource* mr) : _al(mr) {
         this->_top = nullptr;
@@ -70,15 +79,6 @@ public:
     Iter end() { 
         return Iter(nullptr); 
     }
-
-private:
-    struct _link {
-        T val;
-        _link* next;
-    };
-
-    std::pmr::polymorphic_allocator<_link> _al;
-    _link* _top;
 };
 
 #endif
