@@ -1,46 +1,35 @@
 #include <iostream>
-#include <string>
 #include "wrapper_mem.h"
 #include "list_stack.h"
 
-void print_sep(const std::string& title) {
-    std::cout << "\n=== " << title << " ===\n";
-}
-
-struct TestStruct {
+struct TestObj {
     int id;
-    std::string name;
+    float val;
 };
 
 int main() {
-    LabMemoryResource mem;
+    MyMemRes mr;
+
+    std::cout << "--- START INT ---\n";
+    StackList<int> s1(&mr);
     
-    print_sep("Int Test Start");
-    
-    MyStackContainer<int> st1(&mem);
-    
-    st1.push(100);
-    st1.push(200);
-    
-    std::cout << "Current stack: ";
-    for (auto it = st1.begin(); it != st1.end(); ++it) {
+    s1.push(10);
+    s1.push(20);
+
+    for (auto it = s1.begin(); it != s1.end(); ++it) {
         std::cout << *it << " ";
     }
     std::cout << "\n";
 
-    st1.pop();
-    st1.pop();
+    s1.pop();
+    s1.pop();
 
-    std::cout << "Adding new item (Check Reuse):\n";
-    st1.push(300);
+    std::cout << "--- REUSE CHECK ---\n";
+    s1.push(30);
 
-    print_sep("Struct Test Start");
-    
-    MyStackContainer<TestStruct> st2(&mem);
-    st2.push({1, "Alpha"});
-    
-    auto it = st2.begin();
-    std::cout << "Top: " << it.ptr->data.name << "\n";
+    std::cout << "--- START STRUCT ---\n";
+    StackList<TestObj> s2(&mr);
+    s2.push({1, 3.14f});
     
     return 0;
 }

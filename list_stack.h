@@ -5,75 +5,61 @@
 #include <iterator>
 
 template <typename T>
-class MyStackContainer {
-    struct Elem_t { 
-        T data; 
-        Elem_t* next_ptr; 
+class StackList {
+    struct node {
+        T val;
+        node* next;
     };
 
-    std::pmr::polymorphic_allocator<Elem_t> m_alloc;
-    Elem_t* m_head;
+    std::pmr::polymorphic_allocator<node> al;
+    node* head;
 
 public:
-    MyStackContainer(std::pmr::memory_resource* res) : m_alloc(res) {
-        m_head = nullptr;
+    StackList(std::pmr::memory_resource* r) : al(r) {
+        head = nullptr;
     }
 
-    ~MyStackContainer() {
-        while (m_head != nullptr) {
-            pop();
-        }
+    ~StackList() {
+        while (head) pop();
     }
 
-    void push(const T& val) {
-        Elem_t* new_elem = m_alloc.allocate(1);
-        m_alloc.construct(new_elem, Elem_t{val, m_head});
-        m_head = new_elem;
+    void push(const T& v) {
+        node* n = al.allocate(1);
+        al.construct(n, node{v, head});
+        head = n;
     }
 
     void pop() {
-        if (m_head == nullptr) return;
-        
-        Elem_t* old = m_head;
-        m_head = m_head->next_ptr;
-        
-        m_alloc.destroy(old);
-        m_alloc.deallocate(old, 1);
+        if (!head) return;
+        node* tmp = head;
+        head = head->next;
+        al.destroy(tmp);
+        al.deallocate(tmp, 1);
     }
 
-    class StackIter {
+    class Iterator {
     public:
-        typedef std::forward_iterator_tag iterator_category;
-        typedef T value_type;
-        typedef std::ptrdiff_t difference_type;
-        typedef T* pointer;
-        typedef T& reference;
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
 
-        Elem_t* ptr;
+        node* cur;
+        Iterator(node* c) : cur(c) {}
 
-        StackIter(Elem_t* p) : ptr(p) {}
-
-        T& operator*() { 
-            return ptr->data; 
-        }
-
-        StackIter& operator++() {
-            if (ptr) ptr = ptr->next_ptr;
+        T& operator*() { return cur->val; }
+        
+        Iterator& operator++() {
+            if (cur) cur = cur->next;
             return *this;
         }
 
-        bool operator!=(const StackIter& other) {
-            return ptr != other.ptr;
-        }
+        bool operator!=(const Iterator& o) { return cur != o.cur; }
     };
 
-    StackIter begin() { 
-        return StackIter(m_head); 
-    }
-    
-    StackIter end() { 
-        return StackIter(nullptr); 
-    }
+    Iterator begin() { return Iterator(head); }
+    Iterator end() { return Iterator(nullptr); }
 };
 
 #endif
