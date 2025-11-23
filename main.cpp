@@ -1,75 +1,38 @@
-#include "mem.h"
-#include "stack.h"
 #include <iostream>
 #include <string>
+#include "mem.h"     // <--- Тут теперь mem.h
+#include "stack.h"   // <--- Тут теперь stack.h
 
-struct ComplexType {
+struct Data {
     int id;
-    std::string name;
-    double value;
-    
-    friend std::ostream& operator<<(std::ostream& os, const ComplexType& obj) {
-        os << "ID: " << obj.id << ", Name: " << obj.name << ", Value: " << obj.value;
-        return os;
-    }
+    std::string s;
 };
 
-template <typename T>
-void demonstrate_stack(Stack<T>& stack) {
-    std::cout << "Stack contents: ";
-    for (auto it = stack.begin(); it != stack.end(); ++it) {
-        std::cout << *it << " ";
-    }
-    std::cout << "\nTop element: " << stack.top() << std::endl;
-    std::cout << "Stack size: " << stack.size() << std::endl;
-}
-
 int main() {
-    VectorMemoryResource resource;
+    MemRes mr;
     
-    {
-        Stack<int> int_stack(&resource);
-        std::cout << "=== Integer Stack Demo ===" << std::endl;
-        
-        int_stack.push(10);
-        int_stack.push(20);
-        int_stack.push(30);
-        
-        demonstrate_stack(int_stack);
-        
-        int_stack.pop();
-        std::cout << "\nAfter pop:" << std::endl;
-        demonstrate_stack(int_stack);
-    }
+    std::cout << "=== TEST 1: INT ===\n";
+    Stack<int> s1(&mr);
     
-    std::cout << "\n--- Memory reuse demonstration ---\n" << std::endl;
+    std::cout << "Pushing 10, 20:\n";
+    s1.push(10);
+    s1.push(20);
     
-    {
-        Stack<int> new_stack(&resource);
-        new_stack.push(100);
-        std::cout << "New stack with reused memory:" << std::endl;
-        demonstrate_stack(new_stack);
-    }
-    
-    std::cout << "\n=== Complex Type Stack Demo ===" << std::endl;
-    
-    Stack<ComplexType> complex_stack(&resource);
-    
-    complex_stack.push({1, "First", 10.5});
-    complex_stack.push({2, "Second", 20.75});
-    complex_stack.push({3, "Third", 30.0});
-    
-    std::cout << "Stack contents:" << std::endl;
-    for (const auto& item : complex_stack) {
-        std::cout << item << std::endl;
-    }
-    
-    std::cout << "\nTop element: ";
-    std::cout << complex_stack.top() << std::endl;
-    
-    complex_stack.pop();
-    std::cout << "\nAfter pop, new top element: ";
-    std::cout << complex_stack.top() << std::endl;
+    std::cout << "Items: ";
+    for(auto x : s1) std::cout << x << " ";
+    std::cout << "\n\n";
+
+    std::cout << "Pop (saving memory):\n";
+    s1.pop(); 
+    s1.pop(); 
+
+    std::cout << "Push 30 (checking reuse):\n";
+    s1.push(30); 
+
+    std::cout << "\n=== TEST 2: STRUCT ===\n";
+    Stack<Data> s2(&mr);
+    s2.push({1, "Student"});
+    std::cout << "Val: " << s2.begin().curr->val.s << "\n";
     
     return 0;
 }
