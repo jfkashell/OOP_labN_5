@@ -2,40 +2,34 @@
 #include "wrapper_mem.h"
 #include "list_stack.h"
 
-struct XData {
-    int a;
-    int b;
+struct MyData {
+    int id;
+    double val;
 };
 
 int main() {
-    Lab5Mem resource;
-
-    std::cout << ">>> Test 1 (Integers) <<<\n";
-    MyStack<int> st(&resource);
+    LabMemResource res;
     
-    st.push(111);
-    st.push(222);
-    st.push(333);
+    std::cout << "--- Integer Stack ---\n";
+    CustomStack<int> stack_int(&res);
+    
+    stack_int.push(10);
+    stack_int.push(20);
 
-    auto it = st.begin();
-    while (it != st.end()) {
-        std::cout << *it << " ";
-        ++it;
+    for (auto val : stack_int) {
+        std::cout << val << " ";
     }
     std::cout << "\n";
 
-    st.pop();
-    st.pop();
-    st.pop(); 
+    stack_int.pop();
+    stack_int.pop();
 
-    std::cout << ">>> Test Reuse <<<\n";
-    st.push(444); 
-    st.push(555);
+    std::cout << "--- Reuse Check ---\n";
+    stack_int.push(99);
 
-    std::cout << ">>> Test 2 (Structs) <<<\n";
-    MyStack<XData> st_str(&resource);
-    st_str.push({1, 2});
+    std::cout << "--- Struct Stack ---\n";
+    CustomStack<MyData> stack_data(&res);
+    stack_data.push({1, 3.14});
     
-    std::cout << "Done.\n";
     return 0;
 }

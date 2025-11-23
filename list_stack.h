@@ -5,80 +5,63 @@
 #include <iterator>
 
 template <typename T>
-class MyStack {
-private:
-    struct _link {
-        T val;
-        _link* next;
+class CustomStack {
+    struct Item {
+        T value;
+        Item* next;
     };
 
-    std::pmr::polymorphic_allocator<_link> _al;
-    _link* _top;
+    std::pmr::polymorphic_allocator<Item> _alloc;
+    Item* _top;
 
 public:
-    MyStack(std::pmr::memory_resource* mr) : _al(mr) {
-        this->_top = nullptr;
+    CustomStack(std::pmr::memory_resource* r) : _alloc(r), _top(nullptr) {}
+
+    ~CustomStack() {
+        while (_top) pop();
     }
 
-    ~MyStack() {
-        while (this->_top != nullptr) {
-            this->pop();
-        }
-    }
-
-    void push(const T& obj) {
-        _link* ptr = this->_al.allocate(1);
-        this->_al.construct(ptr, _link{obj, this->_top});
-        this->_top = ptr;
+    void push(const T& val) {
+        Item* new_item = _alloc.allocate(1);
+        _alloc.construct(new_item, Item{val, _top});
+        _top = new_item;
     }
 
     void pop() {
-        if (this->_top == nullptr) {
-            return;
-        }
-        _link* tmp = this->_top;
-        this->_top = this->_top->next;
+        if (!_top) return;
+        Item* tmp = _top;
+        _top = _top->next;
         
-        this->_al.destroy(tmp);
-        this->_al.deallocate(tmp, 1);
+        _alloc.destroy(tmp);
+        _alloc.deallocate(tmp, 1);
     }
 
-    class Iter {
+    class Iterator {
     public:
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = T;
-        using difference_type = std::ptrdiff_t;
-        using pointer = T*;
-        using reference = T&;
+        typedef std::forward_iterator_tag iterator_category;
+        typedef T value_type;
+        typedef std::ptrdiff_t difference_type;
+        typedef T* pointer;
+        typedef T& reference;
 
-        Iter(_link* p) : _curr(p) {}
+        Item* curr;
 
-        T& operator*() { 
-            return this->_curr->val; 
-        }
+        Iterator(Item* ptr) : curr(ptr) {}
+
+        T& operator*() { return curr->value; }
         
-        Iter& operator++() {
-            if (this->_curr) {
-                this->_curr = this->_curr->next;
-            }
+        Iterator& operator++() {
+            if (curr) curr = curr->next;
             return *this;
         }
 
-        bool operator!=(const Iter& right) {
-            return this->_curr != right._curr;
+        bool operator!=(const Iterator& other) {
+            return curr != other.curr;
         }
-
-    private:
-        _link* _curr;
     };
 
-    Iter begin() { 
-        return Iter(this->_top); 
-    }
-    
-    Iter end() { 
-        return Iter(nullptr); 
-    }
+    Iterator begin() { return Iterator(_top); }
+    Iterator end() { return Iterator(nullptr); }
 };
 
 #endif
