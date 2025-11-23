@@ -13,10 +13,8 @@ class Lab17Resource : public std::pmr::memory_resource {
         void* addr;
         size_t len;
     };
-
     std::vector<_chunk_info> _pool;
     std::vector<void*> _sys;
-
 public:
     ~Lab17Resource() {
         for (auto p : _sys) { 
@@ -24,7 +22,6 @@ public:
         }
         DBG_PRINT(">> Resource died. Total allocs: %d\n", G_ALLOC_COUNT);
     }
-
 protected:
     void* do_allocate(size_t bytes, size_t alignment) override {
         G_ALLOC_COUNT++;
@@ -40,18 +37,15 @@ protected:
                 return ptr;
             }
         }
-
         void* ptr = ::operator new(bytes, std::align_val_t(alignment));
         _sys.push_back(ptr);
         DBG_PRINT("[MEM] System new: %p (%zu b)\n", ptr, bytes);
         return ptr;
     }
-
     void do_deallocate(void* p, size_t bytes, size_t alignment) override {
         _pool.push_back({p, bytes});
         DBG_PRINT("[MEM] Return to pool: %p\n", p);
     }
-
     bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override {
         return this == &other;
     }
@@ -72,19 +66,16 @@ public:
     SimpleStack(std::pmr::memory_resource* mr) 
         : _allocator(mr), _head(nullptr) 
     {}
-
     ~SimpleStack() {
         while (_head) {
             pop();
         }
     }
-
     void push(const T& val) {
         Node* n = _allocator.allocate(1);
         _allocator.construct(n, Node{val, _head});
         _head = n;
     }
-
     void pop() {
         if (!_head) return;
         
@@ -104,7 +95,6 @@ public:
 
         Node* curr;
         MyIter(Node* c) : curr(c) {}
-
         T& operator*() { return curr->data; }
         MyIter& operator++() { 
             if(curr) curr = curr->next; 
@@ -149,6 +139,5 @@ int main() {
         s2.push({1, 3.14f});
         std::cout << "Top struct val: " << s2.begin().curr->data.val << "\n";
     }
-
     return 0;
 }
