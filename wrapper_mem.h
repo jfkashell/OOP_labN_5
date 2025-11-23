@@ -5,50 +5,64 @@
 #include <iostream>
 #include <memory_resource>
 
-class MyMemRes : public std::pmr::memory_resource {
-    struct block {
-        void* ptr;
-        size_t size;
-    };
+#define PRT(x) std::cout << x << std::endl
 
-    std::vector<block> _pool; 
-    std::vector<void*> _all;
-
+class Lab5Mem : public std::pmr::memory_resource {
 public:
-    ~MyMemRes() {
-        for (size_t i = 0; i < _all.size(); ++i) {
-            ::operator delete(_all[i]);
+    ~Lab5Mem() {
+        while (!_sys_ptrs.empty()) {
+            void* last = _sys_ptrs.back();
+            _sys_ptrs.pop_back();
+            ::operator delete(last);
         }
     }
 
 protected:
-    void* do_allocate(size_t bytes, size_t align) override {
-        for (size_t i = 0; i < _pool.size(); ++i) {
-            if (_pool[i].size == bytes) {
-                void* p = _pool[i].ptr;
-                _pool.erase(_pool.begin() + i);
-                std::cout << "alloc: reuse " << p << std::endl;
-                return p;
+    void* do_allocate(size_t n, size_t algn) override {
+        bool found = false;
+        int idx = -1;
+
+        for (int i = (int)_storage.size() - 1; i >= 0; --i) {
+            if (_storage[i].sz == n) {
+                idx = i;
+                found = true;
+                break;
             }
         }
 
-        void* p = ::operator new(bytes, std::align_val_t(align));
-        _all.push_back(p);
-        std::cout << "alloc: new " << p << " (" << bytes << ")" << std::endl;
-        return p;
+        if (found && idx != -1) {
+            void* ret = _storage[idx].p;
+            _storage.erase(_storage.begin() + idx);
+            std::cout << "[MEM] Reuse: " << ret << std::endl;
+            return ret;
+        }
+
+        void* ptr = ::operator new(n, std::align_val_t(algn));
+        _sys_ptrs.push_back(ptr);
+        std::cout << "[MEM] Alloc: " << ptr << " / " << n << std::endl;
+        return ptr;
     }
 
-    void do_deallocate(void* p, size_t bytes, size_t align) override {
-        block b;
-        b.ptr = p;
-        b.size = bytes;
-        _pool.push_back(b);
-        std::cout << "dealloc: save " << p << std::endl;
+    void do_deallocate(void* p, size_t n, size_t algn) override {
+        if (p == nullptr) return;
+        _chunk c;
+        c.p = p;
+        c.sz = n;
+        _storage.push_back(c);
+        std::cout << "[MEM] Free: " << p << std::endl;
     }
 
-    bool do_is_equal(const std::pmr::memory_resource& other) const noexcept override {
-        return this == &other;
+    bool do_is_equal(const std::pmr::memory_resource& o) const noexcept override {
+        return this == &o;
     }
+
+private:
+    struct _chunk {
+        void* p;
+        size_t sz;
+    };
+    std::vector<_chunk> _storage;
+    std::vector<void*> _sys_ptrs;
 };
 
 #endif

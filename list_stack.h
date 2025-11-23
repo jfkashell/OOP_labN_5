@@ -5,39 +5,36 @@
 #include <iterator>
 
 template <typename T>
-class StackList {
-    struct node {
-        T val;
-        node* next;
-    };
-
-    std::pmr::polymorphic_allocator<node> al;
-    node* head;
-
+class MyStack {
 public:
-    StackList(std::pmr::memory_resource* r) : al(r) {
-        head = nullptr;
+    MyStack(std::pmr::memory_resource* mr) : _al(mr) {
+        this->_top = nullptr;
     }
 
-    ~StackList() {
-        while (head) pop();
+    ~MyStack() {
+        while (this->_top != nullptr) {
+            this->pop();
+        }
     }
 
-    void push(const T& v) {
-        node* n = al.allocate(1);
-        al.construct(n, node{v, head});
-        head = n;
+    void push(const T& obj) {
+        _link* ptr = this->_al.allocate(1);
+        this->_al.construct(ptr, _link{obj, this->_top});
+        this->_top = ptr;
     }
 
     void pop() {
-        if (!head) return;
-        node* tmp = head;
-        head = head->next;
-        al.destroy(tmp);
-        al.deallocate(tmp, 1);
+        if (this->_top == nullptr) {
+            return;
+        }
+        _link* tmp = this->_top;
+        this->_top = this->_top->next;
+        
+        this->_al.destroy(tmp);
+        this->_al.deallocate(tmp, 1);
     }
 
-    class Iterator {
+    class Iter {
     public:
         using iterator_category = std::forward_iterator_tag;
         using value_type = T;
@@ -45,21 +42,43 @@ public:
         using pointer = T*;
         using reference = T&;
 
-        node* cur;
-        Iterator(node* c) : cur(c) {}
+        Iter(_link* p) : _curr(p) {}
 
-        T& operator*() { return cur->val; }
+        T& operator*() { 
+            return this->_curr->val; 
+        }
         
-        Iterator& operator++() {
-            if (cur) cur = cur->next;
+        Iter& operator++() {
+            if (this->_curr) {
+                this->_curr = this->_curr->next;
+            }
             return *this;
         }
 
-        bool operator!=(const Iterator& o) { return cur != o.cur; }
+        bool operator!=(const Iter& right) {
+            return this->_curr != right._curr;
+        }
+
+    private:
+        _link* _curr;
     };
 
-    Iterator begin() { return Iterator(head); }
-    Iterator end() { return Iterator(nullptr); }
+    Iter begin() { 
+        return Iter(this->_top); 
+    }
+    
+    Iter end() { 
+        return Iter(nullptr); 
+    }
+
+private:
+    struct _link {
+        T val;
+        _link* next;
+    };
+
+    std::pmr::polymorphic_allocator<_link> _al;
+    _link* _top;
 };
 
 #endif
